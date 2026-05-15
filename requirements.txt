@@ -1,4 +1,1 @@
-fastapi
-uvicorn
-google-generativeai
-python-dotenv
+-r backend/requirements.txt
