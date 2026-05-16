@@ -19,7 +19,16 @@ function parseFastApiDetail(payload: unknown): string {
   return `Request failed (${JSON.stringify(detail)})`;
 }
 
-    console.info("[AlgoLens API] POST github/analyze");
+    async function request<T>(
+  path: string,
+  options?: RequestInit
+): Promise<T> {
+  let res: Response;
+
+  try {
+    console.info("[AlgoLens API] Request", path);
+
+    res = await fetch(`${API_BASE}${path}`, {
       ...options,
       headers: {
         "Content-Type": "application/json",
@@ -28,15 +37,24 @@ function parseFastApiDetail(payload: unknown): string {
     });
   } catch (e) {
     console.error("[AlgoLens API] network error", path, e);
+
     throw new Error(
-      `Cannot reach API at ${API_BASE}. Is the backend running? (${e instanceof Error ? e.message : "network error"})`
+      `Cannot reach API at ${API_BASE}. Is the backend running? (${
+        e instanceof Error ? e.message : "network error"
+      })`
     );
   }
+
   if (!res.ok) {
     const errBody = await res.json().catch(() => ({}));
+
     console.error("[AlgoLens API]", res.status, path, errBody);
-    throw new Error(parseFastApiDetail(errBody) ?? `Request failed: ${res.status}`);
+
+    throw new Error(
+      parseFastApiDetail(errBody) ?? `Request failed: ${res.status}`
+    );
   }
+
   return res.json() as Promise<T>;
 }
 
