@@ -1,3 +1,6 @@
+from contextlib import asynccontextmanager
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -7,6 +10,14 @@ from app.core.classifier import classify_problem, get_complexity_hint
 from app.llm.client import LLMClient
 from app.schemas.analyze import AnalysisResponse, ProblemRequest
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):  # noqa: ARG001
+    """Ensure app.* loggers emit INFO when uvicorn configures the root logger."""
+    logging.getLogger("app").setLevel(logging.INFO)
+    yield
+
+
 settings = get_settings()
 llm = LLMClient()
 
@@ -14,6 +25,7 @@ app = FastAPI(
     title="AlgoLens API",
     version=settings.api_version,
     description="AI-powered DSA copilot and developer productivity platform",
+    lifespan=lifespan,
 )
 
 _cors_origins = (

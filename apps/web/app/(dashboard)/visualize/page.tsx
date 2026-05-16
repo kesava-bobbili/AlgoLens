@@ -8,6 +8,7 @@ import { api, type TraceStep, type VisualizeResult } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 import Editor, { type OnMount } from "@monaco-editor/react";
+import type * as Monaco from "monaco-editor";
 import type { editor } from "monaco-editor";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, Play } from "lucide-react";
@@ -23,12 +24,9 @@ import {
 const DEFAULT_CODE = `def fib(n):
     if n <= 1:
         return n
-    a, b = 0, 1
-    for _ in range(2, n + 1):
-        a, b = b, a + b
-    return b
+    return fib(n - 1) + fib(n - 2)
 
-result = fib(8)
+result = fib(5)
 print(result)
 `;
 
@@ -41,6 +39,7 @@ export default function VisualizePage() {
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const monacoRef = useRef<typeof Monaco | null>(null);
   const decorationRef = useRef<string[]>([]);
 
   const steps = trace?.steps ?? [];
@@ -62,13 +61,8 @@ export default function VisualizePage() {
 
   const highlightEditorLine = useCallback((line: number | undefined) => {
     const ed = editorRef.current;
-    if (!ed || !line) return;
-    const monaco = (
-      window as unknown as {
-        monaco?: typeof import("monaco-editor");
-      }
-    ).monaco;
-    if (!monaco) return;
+    const monaco = monacoRef.current;
+    if (!ed || !line || !monaco) return;
     decorationRef.current = ed.deltaDecorations(decorationRef.current, [
       {
         range: new monaco.Range(line, 1, line, 1),
@@ -100,8 +94,9 @@ export default function VisualizePage() {
     return () => clearInterval(id);
   }, [playing, speed, steps.length]);
 
-  const handleEditorMount: OnMount = (editor) => {
+  const handleEditorMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
+    monacoRef.current = monaco;
   };
 
   const runTrace = useCallback(async () => {
@@ -113,7 +108,14 @@ export default function VisualizePage() {
     try {
       const data = await api.visualize(code);
       setTrace(data);
-      if (data.error && data.steps.length === 0) setError(data.error);
+      setStepIndex(0);
+      if (data.error && data.steps.length === 0) {
+        setError(data.error);
+      } else if (data.error && data.steps.length > 0) {
+        setError(`Partial trace (${data.steps.length} steps): ${data.error}`);
+      } else {
+        setError(null);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Visualization failed");
     } finally {

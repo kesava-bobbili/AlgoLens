@@ -1,22 +1,48 @@
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
+function parseFastApiDetail(payload: unknown): string {
+  if (!payload || typeof payload !== "object") {
+    return "Request failed";
+  }
+  const detail = (payload as { detail?: unknown }).detail;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    return detail
+      .map((item) =>
+        typeof item === "object" && item !== null && "msg" in item
+          ? String((item as { msg: string }).msg)
+          : JSON.stringify(item)
+      )
+      .join("; ");
+  }
+  return `Request failed (${JSON.stringify(detail)})`;
+}
+
 async function request<T>(
   path: string,
   options?: RequestInit
 ): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+  const url = `${API_BASE}${path}`;
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
+    });
+  } catch (e) {
+    console.error("[AlgoLens API] network error", path, e);
     throw new Error(
-      (err as { detail?: string }).detail ?? `Request failed: ${res.status}`
+      `Cannot reach API at ${API_BASE}. Is the backend running? (${e instanceof Error ? e.message : "network error"})`
     );
+  }
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    console.error("[AlgoLens API]", res.status, path, errBody);
+    throw new Error(parseFastApiDetail(errBody) ?? `Request failed: ${res.status}`);
   }
   return res.json() as Promise<T>;
 }

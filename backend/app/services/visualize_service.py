@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import ast
-import signal
+import logging
 import sys
+import time
 import traceback
 from types import CodeType
 from typing import Any, Optional
 
 from app.schemas.visualize import TraceStep, VisualizeRequest, VisualizeResponse
+
+logger = logging.getLogger(__name__)
 
 # Restricted builtins for safe educational execution
 SAFE_BUILTINS: dict[str, Any] = {
@@ -38,15 +41,32 @@ SAFE_BUILTINS: dict[str, Any] = {
 }
 
 MAX_STEPS = 200
-EXEC_TIMEOUT_SEC = 3
+EXEC_TIMEOUT_SEC = 3.0
 
 
 class _ExecutionTracer:
-    def __init__(self, source_lines: list[str]) -> None:
+    """sys.settrace callback — must run on same thread as exec()."""
+
+    __slots__ = (
+        "source_lines",
+        "steps",
+        "_step_count",
+        "_max_depth",
+        "_start_mono",
+        "_timeout_sec",
+    )
+
+    def __init__(
+        self,
+        source_lines: list[str],
+        timeout_sec: float = EXEC_TIMEOUT_SEC,
+    ) -> None:
         self.source_lines = source_lines
         self.steps: list[TraceStep] = []
         self._step_count = 0
         self._max_depth = 0
+        self._start_mono = time.monotonic()
+        self._timeout_sec = timeout_sec
 
     def trace(self, frame, event, arg):  # noqa: ANN001
         if event not in ("line", "call", "return"):
@@ -56,7 +76,19 @@ class _ExecutionTracer:
         if filename != "<user_code>":
             return self.trace
 
+        elapsed = time.monotonic() - self._start_mono
+        if elapsed > self._timeout_sec:
+            logger.warning(
+                "visualize trace timeout after %.2fs (step=%s)",
+                elapsed,
+                self._step_count,
+            )
+            raise TimeoutError(
+                f"Execution timed out ({self._timeout_sec:.0f}s limit)."
+            )
+
         if self._step_count >= MAX_STEPS:
+            logger.warning("visualize max steps exceeded: %s", MAX_STEPS)
             raise TimeoutError("Maximum trace steps exceeded")
 
         lineno = frame.f_lineno
@@ -98,17 +130,19 @@ class _ExecutionTracer:
         return result
 
     def _build_call_stack(self, frame) -> list[str]:  # noqa: ANN001
+        """Only frames from compiled user code — excludes FastAPI/thread internals."""
         stack: list[str] = []
         current = frame
         while current:
-            name = current.f_code.co_name
-            lineno = current.f_lineno
-            stack.append(f"{name}():{lineno}")
+            if current.f_code.co_filename == "<user_code>":
+                name = current.f_code.co_name
+                lineno = current.f_lineno
+                stack.append(f"{name}():{lineno}")
             current = current.f_back
         return list(reversed(stack))
 
 
-def _validate_code(code: str) -> str | None:
+def _validate_code(code: str) -> Optional[str]:
     try:
         tree = ast.parse(code)
     except SyntaxError as exc:
@@ -143,23 +177,23 @@ def _run_traced(
     globals_dict: dict[str, Any],
     stdin: str,
 ) -> Optional[str]:
-    def _timeout_handler(signum, frame):  # noqa: ANN001
-        raise TimeoutError("Execution timed out (3s limit).")
-
+    """
+    Run user code with tracing active on this thread.
+    Do NOT use signal.SIGALRM here — FastAPI runs sync routes in a worker
+    thread where signal.signal raises ValueError.
+    """
     old_stdin = sys.stdin
     sys.stdin = __import__("io").StringIO(stdin)
-    previous_handler = signal.signal(signal.SIGALRM, _timeout_handler)
-    signal.alarm(EXEC_TIMEOUT_SEC)
     try:
         exec(code_obj, globals_dict)  # noqa: S102
         return None
     except TimeoutError as exc:
+        logger.info("visualize execution stopped: %s", exc)
         return str(exc)
     except Exception:
-        return traceback.format_exc(limit=3)
+        logger.exception("visualize runtime error")
+        return traceback.format_exc(limit=5)
     finally:
-        signal.alarm(0)
-        signal.signal(signal.SIGALRM, previous_handler)
         sys.stdin = old_stdin
 
 
@@ -170,6 +204,7 @@ class VisualizeService:
 
         validation_error = _validate_code(code)
         if validation_error:
+            logger.info("visualize validation failed: %s", validation_error)
             return VisualizeResponse(
                 steps=[],
                 source_lines=source_lines,
@@ -187,6 +222,7 @@ class VisualizeService:
                 code, "<user_code>", "exec", dont_inherit=True
             )
         except SyntaxError as exc:
+            logger.info("visualize compile error: %s", exc)
             return VisualizeResponse(
                 steps=[],
                 source_lines=source_lines,
@@ -198,6 +234,13 @@ class VisualizeService:
             runtime_error = _run_traced(compiled, globals_dict, request.stdin)
         finally:
             sys.settrace(None)
+
+        logger.info(
+            "visualize complete: %s steps, depth=%s, error=%s",
+            len(tracer.steps),
+            tracer._max_depth,
+            runtime_error is not None,
+        )
 
         return VisualizeResponse(
             steps=tracer.steps,
