@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -15,6 +15,7 @@ class GitHubRepoMeta(BaseModel):
     forks: int
     topics: List[str]
     default_branch: str
+    languages: Dict[str, int] = Field(default_factory=dict)
 
 
 class GitHubAnalyzeResponse(BaseModel):

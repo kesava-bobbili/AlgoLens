@@ -19,14 +19,7 @@ function parseFastApiDetail(payload: unknown): string {
   return `Request failed (${JSON.stringify(detail)})`;
 }
 
-async function request<T>(
-  path: string,
-  options?: RequestInit
-): Promise<T> {
-  const url = `${API_BASE}${path}`;
-  let res: Response;
-  try {
-    res = await fetch(url, {
+    console.info("[AlgoLens API] POST github/analyze");
       ...options,
       headers: {
         "Content-Type": "application/json",
@@ -93,6 +86,7 @@ export interface GitHubMeta {
   forks: number;
   topics: string[];
   default_branch: string;
+  languages: Record<string, number>;
 }
 
 export interface GitHubAnalyzeResult {
@@ -126,11 +120,21 @@ export const api = {
       body: JSON.stringify({ session_id, answer }),
     }),
 
-  githubAnalyze: (repo_url: string) =>
-    request<GitHubAnalyzeResult>("/api/v1/github/analyze", {
-      method: "POST",
-      body: JSON.stringify({ repo_url }),
-    }),
+  githubAnalyze: async (repo_url: string) => {
+    console.info("[AlgoLens API] POST github/analyze", {
+      apiBase: API_BASE,
+      repo_url,
+    });
+    try {
+      return await request<GitHubAnalyzeResult>("/api/v1/github/analyze", {
+        method: "POST",
+        body: JSON.stringify({ repo_url }),
+      });
+    } catch (err) {
+      console.error("[AlgoLens API] github/analyze failed", repo_url, err);
+      throw err;
+    }
+  },
 
   patterns: () =>
     request<{ patterns: string[]; total: number }>("/api/v1/patterns"),

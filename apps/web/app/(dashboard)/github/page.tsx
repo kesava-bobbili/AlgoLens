@@ -1,15 +1,30 @@
 "use client";
 
-import { Badge } from "@/components/ui/Badge";
+import { GitHubAnalyzeResults } from "@/components/github/GitHubAnalyzeResults";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { api, type GitHubAnalyzeResult } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
-import { parseSections } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
-import { Github, Loader2, Star } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Github, Loader2 } from "lucide-react";
 import { useState } from "react";
+
+function GitHubResultsSkeleton() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-36 w-full" />
+      <Skeleton className="h-24 w-full" />
+      <Skeleton className="h-48 w-full" />
+      <div className="grid gap-4 md:grid-cols-2">
+        <Skeleton className="h-40" />
+        <Skeleton className="h-40" />
+      </div>
+      <Skeleton className="h-32 w-full" />
+    </div>
+  );
+}
 
 export default function GitHubPage() {
   const [url, setUrl] = useState("https://github.com/kesava-bobbili/AlgoLens");
@@ -35,8 +50,6 @@ export default function GitHubPage() {
     }
   }
 
-  const sections = result ? parseSections(result.ai_analysis) : {};
-
   return (
     <div>
       <PageHeader
@@ -45,90 +58,62 @@ export default function GitHubPage() {
         description="Analyze any public repository — architecture summary, code quality insights, and README suggestions."
       />
 
-      <Card className="mb-6">
-        <div className="flex gap-3">
+      <Card className="mb-6 border-border/60 bg-surface/40 backdrop-blur-xl">
+        <div className="flex flex-col gap-3 sm:flex-row">
           <input
-            type="url"
+            type="text"
+            inputMode="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://github.com/owner/repo"
-            className="flex-1 rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-accent"
+            className="flex-1 rounded-xl border border-border/60 bg-background px-4 py-2.5 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
           />
-          <Button onClick={handleAnalyze} disabled={loading}>
+          <Button
+            className="sm:w-auto"
+            onClick={handleAnalyze}
+            disabled={loading}
+          >
             {loading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <Github className="mr-2 h-4 w-4" />
             )}
-            Analyze
+            Analyze repository
           </Button>
         </div>
+        <p className="mt-2 text-xs text-muted">
+          Supports trailing slashes, optional .git, and bare{" "}
+          <code className="rounded bg-background px-1">github.com/org/repo</code>{" "}
+          URLs. Anonymous GitHub API quotas are limited — set{" "}
+          <code className="rounded bg-background px-1">GITHUB_TOKEN</code> on the
+          backend for reliability.
+        </p>
         {error && (
-          <p className="mt-3 text-sm text-red-400">{error}</p>
+          <p className="mt-3 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+            {error}
+          </p>
         )}
       </Card>
 
-      <AnimatePresence>
-        {result && (
+      <AnimatePresence mode="wait">
+        {loading && (
           <motion.div
+            key="sk"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <GitHubResultsSkeleton />
+          </motion.div>
+        )}
+        {result && !loading && (
+          <motion.div
+            key="res"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
+            exit={{ opacity: 0 }}
           >
-            <Card>
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-bold">{result.meta.full_name}</h2>
-                  <p className="mt-1 text-sm text-muted">
-                    {result.meta.description ?? "No description"}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {result.meta.language && (
-                    <Badge>{result.meta.language}</Badge>
-                  )}
-                  <Badge variant="time">
-                    <Star className="mr-1 inline h-3 w-3" />
-                    {result.meta.stars}
-                  </Badge>
-                  <Badge variant="space">{result.meta.forks} forks</Badge>
-                </div>
-              </div>
-              {result.meta.topics.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {result.meta.topics.map((t) => (
-                    <span
-                      key={t}
-                      className="rounded-md bg-surface-elevated px-2 py-0.5 text-xs text-muted"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </Card>
-
-            <Card>
-              <h3 className="mb-3 text-sm font-semibold uppercase text-muted">
-                File Tree (sample)
-              </h3>
-              <pre className="max-h-48 overflow-auto rounded-lg bg-background p-3 font-mono text-xs text-foreground/80">
-                {result.file_tree.join("\n") || "(no files)"}
-              </pre>
-            </Card>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {Object.entries(sections).map(([title, content]) => (
-                <Card key={title}>
-                  <h3 className="mb-2 text-sm font-semibold text-accent">
-                    {title.replace(/_/g, " ")}
-                  </h3>
-                  <pre className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
-                    {content}
-                  </pre>
-                </Card>
-              ))}
-            </div>
+            <GitHubAnalyzeResults result={result} />
           </motion.div>
         )}
       </AnimatePresence>

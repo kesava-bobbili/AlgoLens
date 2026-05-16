@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import logging
+
 from groq import Groq
 
 from app.config import get_settings
 from app.llm import prompts
+
+logger = logging.getLogger(__name__)
 
 
 class LLMClient:
@@ -29,6 +33,7 @@ class LLMClient:
             )
             return response.choices[0].message.content or ""
         except Exception as exc:
+            logger.warning("LLM completion failed: %s", exc, exc_info=True)
             return f"LLM error: {exc}"
 
     def explain_problem(
@@ -72,15 +77,23 @@ class LLMClient:
         description: str,
         language: str,
         topics: list[str],
+        languages_block: str,
         tree: str,
         readme_excerpt: str,
     ) -> str:
-        prompt = prompts.GITHUB_ANALYSIS_PROMPT.format(
+        meta = prompts.GITHUB_ANALYSIS_PROMPT_META.format(
             repo_full_name=repo_full_name,
             description=description or "No description",
             language=language or "Unknown",
             topics=", ".join(topics) if topics else "None",
-            tree=tree,
-            readme_excerpt=readme_excerpt[:3000],
+            languages_block=languages_block or "Unavailable",
         )
-        return self._complete(prompt, max_tokens=1500)
+        safe_readme = (readme_excerpt or "")[:8000]
+        prompt = (
+            meta
+            + prompts.GITHUB_ANALYSIS_PROMPT_TAIL
+            + tree
+            + prompts.GITHUB_ANALYSIS_README_MARKER
+            + safe_readme
+        )
+        return self._complete(prompt, max_tokens=2500)

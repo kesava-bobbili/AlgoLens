@@ -54,35 +54,59 @@ FOLLOW_UP:
 (one follow-up question about optimization, edge cases, or complexity — or "DONE" if interview should end)
 """
 
-GITHUB_ANALYSIS_PROMPT = """You are a senior engineer reviewing a GitHub repository.
+# User-supplied path lists and README are concatenated — never passed through str.format.
+GITHUB_ANALYSIS_PROMPT_META = """You are a senior staff engineer reviewing a public GitHub repository.
+
+Use plain-text section headings exactly as shown (e.g. OVERVIEW:). Do not prefix lines with # markdown characters.
 
 Repository: {repo_full_name}
 Description: {description}
-Primary language: {language}
-Topics: {topics}
-File tree (top level):
-{tree}
+GitHub primary language: {language}
+GitHub topics: {topics}
 
-README excerpt:
-{readme_excerpt}
+Detected languages (bytes of code, GitHub API):
+{languages_block}
 
-Provide a structured analysis:
+A newline-separated path listing from the GitHub Contents API is appended after PATH_LIST (may be truncated).
+"""
 
-SUMMARY:
-(2-3 sentences on project purpose)
+GITHUB_ANALYSIS_PROMPT_TAIL = """
+
+Respond in this EXACT section format (headings verbatim):
+
+OVERVIEW:
+(2-4 sentences: purpose, audience, maturity)
 
 ARCHITECTURE:
-(bullet points on structure and design)
+(bullet points: layout, major modules, how pieces fit)
+
+TECH_STACK:
+(bullet points: frameworks, tooling inferred from paths/topics/languages)
+
+STRENGTHS:
+(bullet points)
+
+WEAKNESSES:
+(bullet points)
+
+SCALABILITY:
+(bullet points: scaling limits, bottlenecks, ops concerns)
 
 CODE_QUALITY:
-(strengths and issues)
-
-IMPROVEMENTS:
-(3-5 actionable suggestions)
+(bullet points: consistency, testing — infer only from structure)
 
 README_SUGGESTIONS:
-(what to add or improve in README)
+(bullet points)
 
-BEST_PRACTICES:
-(missing practices: tests, CI, license, etc.)
+RECOMMENDATIONS:
+(bullet points: 3-7 prioritized actions)
+
+Use cautious wording when inferring ("likely", "appears"). Do not claim files exist unless listed in PATH_LIST or README_EXCERPT.
+
+PATH_LIST
+"""
+
+GITHUB_ANALYSIS_README_MARKER = """
+
+--- README_EXCERPT (may be empty) ---
 """
