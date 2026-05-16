@@ -19,13 +19,13 @@
 
 ## Demo
 
-> Add screenshots to `docs/screenshots/` and embed here for your portfolio README.
-
 | Analyze | Visualizer | Interview | GitHub |
 |---------|------------|-----------|--------|
-| _screenshot_ | _screenshot_ | _screenshot_ | _screenshot_ |
+| ![Analyze](docs/analyze.png) | ![Visualizer](docs/visualize.png) | ![Interview](docs/interview.png) | ![GitHub](docs/repo.png) |
 
-**Live demo:** Run locally (see [Setup](#setup)) or deploy with [Deployment](./docs/DEPLOYMENT.md).
+🌐 **Live demo:** [algo-lens-gilt.vercel.app](https://algo-lens-gilt.vercel.app)
+
+> Or run locally — see [Setup](#setup) below.
 
 ---
 
@@ -156,31 +156,27 @@ App: http://localhost:3000
 | `POST` | `/api/v1/interview/respond` | Submit answer |
 | `POST` | `/api/v1/github/analyze` | Analyze GitHub repo |
 
-Legacy: `POST /analyze`, `GET /patterns`
-
 ---
 
 ## Environment variables
 
 | Variable | Where | Required | Description |
 |----------|-------|----------|-------------|
-| `GROQ_API_KEY` | Backend `.env` | Yes (AI) | Groq API key |
+| `GROQ_API_KEY` | Backend `.env` | Yes | Groq API key |
 | `GITHUB_TOKEN` | Backend `.env` | No | GitHub API rate limits |
-| `CORS_ORIGINS` | Backend `.env` | Prod | Comma-separated frontend URLs |
-| `CORS_ALLOW_ALL` | Backend `.env` | No | `true` for local dev only |
+| `CORS_ALLOW_ALL` | Backend `.env` | No | `true` for local dev |
 | `NEXT_PUBLIC_API_URL` | `apps/web/.env.local` | Yes | Backend URL |
 
 ---
 
 ## Deployment
 
-See **[docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)** for Vercel (frontend) + Render (backend) instructions.
+Frontend → [Vercel](https://vercel.com) · Backend → [Render](https://render.com)
 
-Quick summary:
-
-1. Deploy API to Render with `render.yaml`
-2. Set `CORS_ORIGINS` to your Vercel URL
-3. Deploy `apps/web` to Vercel with `NEXT_PUBLIC_API_URL`
+1. Deploy backend to Render using `render.yaml`
+2. Set `GROQ_API_KEY` in Render environment variables
+3. Deploy `apps/web` to Vercel
+4. Set `NEXT_PUBLIC_API_URL` in Vercel to your Render URL
 
 ---
 
@@ -189,26 +185,14 @@ Quick summary:
 - [ ] Streaming LLM responses (SSE)
 - [ ] Redis-backed interview sessions
 - [ ] User accounts & analysis history
-- [ ] OpenAPI → TypeScript client generation
 - [ ] CI/CD with GitHub Actions
 - [ ] Light mode theme
 
 ---
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push and open a Pull Request
-
-Please do not commit `.env`, `venv/`, or `node_modules/`.
-
----
-
 ## License
 
-MIT — see [LICENSE](./LICENSE) (add if not present).
+MIT
 
 ---
 
