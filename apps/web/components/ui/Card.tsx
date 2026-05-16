@@ -1,24 +1,24 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { HTMLAttributes } from "react";
+import { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
-export function Card({
-  className,
-  children,
-  ...props
-}: HTMLAttributes<HTMLDivElement>) {
+interface CardProps {
+  children: ReactNode;
+  className?: string;
+}
+
+export function Card({ children, className }: CardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
       className={cn(
-        "rounded-xl border border-border bg-surface/80 backdrop-blur-sm p-6 shadow-xl",
+        "rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md shadow-xl",
         className
       )}
-      {...props}
     >
       {children}
     </motion.div>
