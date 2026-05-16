@@ -30,6 +30,10 @@ PATTERNS: dict[str, list[str]] = {
         "reverse",
         "three sum",
         "container with water",
+        "add up",
+        "target sum",
+        "two numbers",
+        "find two",
     ],
     "Binary Search": [
         "sorted",
@@ -87,6 +91,11 @@ PATTERNS: dict[str, list[str]] = {
         "count",
         "appeared",
         "unique",
+        "add up to",
+        "target",
+        "find two",
+        "integers",
+        "sum",
     ],
     "Linked List": [
         "linked list",
@@ -144,7 +153,7 @@ def classify_problem(problem_text: str) -> dict:
 
 def get_complexity_hint(pattern: str) -> dict[str, str]:
     return COMPLEXITY_MAP.get(
-        pattern, {"time": "Unknown", "space": "Unknown"}
+        pattern, {"time": "O(n)", "space": "O(n)"}
     )
 
 

@@ -4,10 +4,11 @@ Problem Statement:
 {problem_text}
 
 Detected Pattern: {pattern}
-Time Complexity: {time_complexity}
-Space Complexity: {space_complexity}
 
 Give a concise response in this exact format:
+
+TIME_COMPLEXITY: (e.g. O(n), O(n log n), O(1) — always provide this, infer from the algorithm)
+SPACE_COMPLEXITY: (e.g. O(n), O(1) — always provide this, infer from the algorithm)
 
 APPROACH:
 (2-3 lines explaining the optimal approach)
@@ -26,6 +27,8 @@ EDGE CASES:
 
 SIMILAR PROBLEMS:
 (3 LeetCode-style problem names)
+
+IMPORTANT: Always fill TIME_COMPLEXITY and SPACE_COMPLEXITY. Never leave them blank.
 """
 
 INTERVIEW_START_PROMPT = """You are a senior software engineer conducting a technical interview.
@@ -48,8 +51,10 @@ Candidate answer: {answer}
 Respond in this exact format:
 
 SCORE: (1-10)
+
 FEEDBACK:
 (2-3 sentences on strengths and gaps)
+
 FOLLOW_UP:
 (one follow-up question about optimization, edge cases, or complexity — or "DONE" if interview should end)
 """
@@ -71,7 +76,6 @@ A newline-separated path listing from the GitHub Contents API is appended after 
 """
 
 GITHUB_ANALYSIS_PROMPT_TAIL = """
-
 Respond in this EXACT section format (headings verbatim):
 
 OVERVIEW:
@@ -107,6 +111,5 @@ PATH_LIST
 """
 
 GITHUB_ANALYSIS_README_MARKER = """
-
 --- README_EXCERPT (may be empty) ---
 """
