@@ -116,6 +116,21 @@ export default function GitHubPage() {
             <GitHubAnalyzeResults result={result} />
           </motion.div>
         )}
+        {!loading && !result && (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="rounded-2xl border border-dashed border-border/60 bg-surface/20 p-8 text-center"
+          >
+            <Github className="mx-auto h-10 w-10 text-muted/50" />
+            <h3 className="mt-4 font-semibold text-foreground">Ready to analyze</h3>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted">
+              Paste any public GitHub URL above to get an AI architecture review,
+              language breakdown, file tree, and README improvement suggestions.
+            </p>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );

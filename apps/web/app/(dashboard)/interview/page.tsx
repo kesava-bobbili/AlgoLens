@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ExampleChips } from "@/components/analyze/ExampleChips";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { api } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
@@ -97,6 +98,7 @@ export default function InterviewPage() {
             placeholder="Enter the DSA problem for your mock interview..."
             className="h-32 w-full resize-y rounded-lg border border-border bg-background p-4 text-sm outline-none focus:border-accent"
           />
+          <ExampleChips onSelect={setProblem} disabled={loading} />
           <Button className="mt-4" onClick={startInterview} disabled={loading}>
             {loading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -27,6 +27,12 @@ export const metadata: Metadata = {
     "Groq",
     "developer tools",
   ],
+  openGraph: {
+    title: "AlgoLens — AI Engineering Copilot",
+    description:
+      "Pattern detection, code tracing, RAG knowledge base, and GitHub review — powered by Groq and LangGraph.",
+    images: [{ url: "/previews/analyze.png", width: 1200, height: 675 }],
+  },
 };
 
 export default function RootLayout({

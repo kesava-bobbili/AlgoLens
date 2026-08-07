@@ -87,6 +87,19 @@ export default function AnalyzePage() {
         {result && !loading && (
           <AnalyzeResults key="results" result={result} />
         )}
+        {!loading && !result && (
+          <div
+            key="empty"
+            className="rounded-2xl border border-dashed border-border/60 bg-surface/20 p-8 text-center"
+          >
+            <Sparkles className="mx-auto h-10 w-10 text-muted/50" />
+            <h3 className="mt-4 font-semibold text-foreground">Paste a problem to get started</h3>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted">
+              AlgoLens detects the algorithm pattern, estimates time and space
+              complexity, and generates a Groq-powered explanation — pick an example above to try it.
+            </p>
+          </div>
+        )}
       </AnimatePresence>
     </div>
   );

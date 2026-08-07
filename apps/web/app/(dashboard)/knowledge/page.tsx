@@ -246,12 +246,22 @@ export default function KnowledgePage() {
         <Card className="border-border/60 bg-surface/40 p-5 backdrop-blur-xl">
           <div className="mb-3 flex items-center gap-2">
             <Search className="h-5 w-5 text-accent" />
-            <h2 className="text-lg font-semibold text-foreground">What This Adds</h2>
+            <h2 className="text-lg font-semibold text-foreground">How it works</h2>
           </div>
-          <div className="space-y-3 text-sm text-foreground/85">
-            <p>RAG ingestion, chunking, embeddings, vector persistence, semantic retrieval, and source-grounded LLM answers.</p>
-            <p>Also includes similar-problem search, which makes the vector DB useful inside AlgoLens instead of feeling like a tutorial feature.</p>
-          </div>
+          <ul className="space-y-2.5 text-sm text-foreground/85">
+            <li className="flex gap-2">
+              <span className="text-accent">1.</span>
+              <span>Upload notes, PDFs, editorials, or code files — they&apos;re chunked and embedded automatically.</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-accent">2.</span>
+              <span>Ask questions and get answers grounded in your materials, with source citations.</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-accent">3.</span>
+              <span>Paste a coding problem to find similar patterns from your indexed files.</span>
+            </li>
+          </ul>
         </Card>
       </div>
 
