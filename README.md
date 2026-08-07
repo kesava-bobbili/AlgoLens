@@ -45,7 +45,7 @@
 
 ```mermaid
 flowchart TB
-  subgraph client [Next.js 15 · apps/web]
+  subgraph client ["Next.js 15 · apps/web"]
     Landing[Landing Page]
     Analyze[Analyze UI]
     Viz[Visualizer UI]
@@ -54,7 +54,7 @@ flowchart TB
     Knowledge[Knowledge Base UI]
   end
 
-  subgraph api [FastAPI · backend/app]
+  subgraph api ["FastAPI · backend/app"]
     Router[API v1 Router]
     Svc[Services Layer]
     Core[Classifier]
@@ -63,7 +63,7 @@ flowchart TB
     VectorDB[ChromaDB Store]
   end
 
-  subgraph external [External]
+  subgraph external ["External"]
     GroqAPI[Groq API]
     GH[GitHub API]
     HF[HuggingFace Inference API]
