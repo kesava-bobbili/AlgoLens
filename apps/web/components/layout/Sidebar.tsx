@@ -7,6 +7,7 @@ import {
   Code2,
   Github,
   Home,
+  Library,
   MessageSquare,
   Sparkles,
   Zap,
@@ -20,6 +21,7 @@ const nav = [
   { href: "/visualize", label: "Visualizer", icon: Code2 },
   { href: "/interview", label: "Interview", icon: MessageSquare },
   { href: "/github", label: "GitHub", icon: Github },
+  { href: "/knowledge", label: "Knowledge", icon: Library },
 ];
 
 export function Sidebar() {
@@ -65,7 +67,7 @@ export function Sidebar() {
       <div className="border-t border-border/60 p-4">
         <div className="flex items-center gap-2 rounded-lg bg-surface-elevated/80 px-3 py-2 text-[11px] text-muted">
           <Brain className="h-3.5 w-3.5 shrink-0 text-accent" />
-          Groq · FastAPI · Next.js
+          Groq · RAG · ChromaDB
         </div>
       </div>
     </aside>

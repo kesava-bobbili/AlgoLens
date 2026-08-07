@@ -33,3 +33,6 @@ npm-debug.log*
 
 # Build / deploy
 *.log
+
+# Local vector database
+backend/storage/

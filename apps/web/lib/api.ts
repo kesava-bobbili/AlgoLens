@@ -1,6 +1,5 @@
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
-  console.log("API BASE:", API_BASE);
 
 function parseFastApiDetail(payload: unknown): string {
   if (!payload || typeof payload !== "object") {
@@ -20,7 +19,7 @@ function parseFastApiDetail(payload: unknown): string {
   return `Request failed (${JSON.stringify(detail)})`;
 }
 
-    async function request<T>(
+async function request<T>(
   path: string,
   options?: RequestInit
 ): Promise<T> {
@@ -29,12 +28,17 @@ function parseFastApiDetail(payload: unknown): string {
   try {
     console.info("[AlgoLens API] Request", path);
 
+    const isFormData =
+      typeof FormData !== "undefined" && options?.body instanceof FormData;
+
     res = await fetch(`${API_BASE}${path}`, {
       ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
+      headers: isFormData
+        ? options?.headers
+        : {
+            "Content-Type": "application/json",
+            ...options?.headers,
+          },
     });
   } catch (e) {
     console.error("[AlgoLens API] network error", path, e);
@@ -114,6 +118,38 @@ export interface GitHubAnalyzeResult {
   ai_analysis: string;
 }
 
+export interface KnowledgeSource {
+  source_id: string;
+  filename: string;
+  file_type: string;
+  chunk_index: number;
+  text: string;
+  score: number;
+}
+
+export interface KnowledgeIngestResult {
+  files_processed: number;
+  chunks_indexed: number;
+  skipped_files: string[];
+  message: string;
+}
+
+export interface KnowledgeQueryResult {
+  answer: string;
+  sources: KnowledgeSource[];
+  retrieval_count: number;
+}
+
+export interface SimilarProblemResult {
+  matches: KnowledgeSource[];
+}
+
+export interface KnowledgeStatsResult {
+  chunks: number;
+  embedding_model: string;
+  vector_store: string;
+}
+
 export const api = {
   analyze: (problem_text: string) =>
     request<AnalysisResult>("/api/v1/analyze", {
@@ -154,6 +190,30 @@ export const api = {
       throw err;
     }
   },
+
+  knowledgeIngest: (files: File[]) => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+    return request<KnowledgeIngestResult>("/api/v1/knowledge/ingest", {
+      method: "POST",
+      body: formData,
+    });
+  },
+
+  knowledgeQuery: (question: string, top_k = 5) =>
+    request<KnowledgeQueryResult>("/api/v1/knowledge/query", {
+      method: "POST",
+      body: JSON.stringify({ question, top_k }),
+    }),
+
+  similarProblem: (problem_text: string, top_k = 5) =>
+    request<SimilarProblemResult>("/api/v1/knowledge/similar", {
+      method: "POST",
+      body: JSON.stringify({ problem_text, top_k }),
+    }),
+
+  knowledgeStats: () =>
+    request<KnowledgeStatsResult>("/api/v1/knowledge/stats"),
 
   patterns: () =>
     request<{ patterns: string[]; total: number }>("/api/v1/patterns"),

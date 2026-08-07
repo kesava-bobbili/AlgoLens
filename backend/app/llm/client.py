@@ -71,6 +71,24 @@ class LLMClient:
         )
         return self._complete(prompt, max_tokens=600)
 
+
+
+    def answer_with_context(
+        self,
+        question: str,
+        sources: list[dict],
+    ) -> str:
+        context = "\n\n".join(
+            f"SOURCE {index}: {source['filename']} chunk {source['chunk_index']} "
+            f"(score {source['score']})\n{source['text']}"
+            for index, source in enumerate(sources, start=1)
+        )
+        prompt = prompts.RAG_ANSWER_PROMPT.format(
+            question=question,
+            context=context[:12000],
+        )
+        return self._complete(prompt, max_tokens=1000)
+
     def analyze_github_repo(
         self,
         repo_full_name: str,

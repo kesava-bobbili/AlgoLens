@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     cors_allow_all: bool = False
     port: int = 8000
     llm_model: str = "llama-3.3-70b-versatile"
+    hf_token: str = ""
     api_version: str = "2.1.0"
 
     @property
