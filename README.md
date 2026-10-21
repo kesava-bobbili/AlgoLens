@@ -14,6 +14,7 @@
   <img src="https://img.shields.io/badge/Groq-LLaMA_3.3-f55036?style=flat-square" alt="Groq" />
   <img src="https://img.shields.io/badge/RAG-LangChain_+_LangGraph_+_ChromaDB-22c55e?style=flat-square" alt="RAG" />
   <img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/CI-GitHub_Actions-2088FF?style=flat-square&logo=github-actions&logoColor=white" alt="CI" />
 </p>
 
 ---
@@ -161,6 +162,30 @@ App: http://localhost:3000
 
 ---
 
+## Running tests
+
+The test suite runs both backend unit/integration tests and frontend linting/type-checking. All tests in CI and local test runs mock external services (Groq LLM, HuggingFace embeddings, ChromaDB persistence, and GitHub API), so **no live API keys, tokens, or external network calls are required**.
+
+### Backend tests
+
+```bash
+cd backend
+pip install -r requirements-dev.txt
+pytest --cov=app --cov-report=term-missing
+```
+
+### Frontend tests & validation
+
+```bash
+cd apps/web
+npm ci
+npm run lint
+npx tsc --noEmit
+npm run build
+```
+
+---
+
 ## API overview
 
 | Method | Endpoint | Description |
@@ -210,7 +235,7 @@ Frontend → [Vercel](https://vercel.com) · Backend → [Render](https://render
 - [ ] Streaming LLM responses (SSE)
 - [ ] Redis-backed interview sessions
 - [ ] User accounts & analysis history
-- [ ] CI/CD with GitHub Actions
+- [x] CI/CD with GitHub Actions
 - [ ] Light mode theme
 
 ---
